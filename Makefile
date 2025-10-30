@@ -6,11 +6,11 @@ lib/libkr.so: obj/brb.o obj/lelinha.o
 
 obj/%.o: %.c %.h
 	gcc -Wall -Werror -fPIC -o $@ -c $<
-	ctags --append -e $<
+	echo ctags --append -e $<
 
 obj/%.o: %.c
 	gcc -Wall -Werror -fPIC -o $@ -c $<
-	ctags --append -e $<
+	echo ctags --append -e $<
 
 run: bin/brbcat
 	echo "--- 8< ---"
