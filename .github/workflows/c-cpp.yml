@@ -18,7 +18,7 @@ jobs:
     - name: make
       run: make
     - name: make
-      run: make run
+      run: make clean run
 #    - name: make check
 #      run: make check
 #    - name: make distcheck
