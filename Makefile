@@ -1,14 +1,14 @@
 .PHONY: clean run
 .SILENT:
 
-lib/libkr.so: obj/brb.o obj/lelinha.o
+lib/libkr.so: obj/brb.o obj/lelinha.o | lib
 	gcc -Wall -Werror -fPIC -shared $^ -o $@
 
-obj/%.o: %.c %.h
+obj/%.o: %.c %.h | obj
 	gcc -Wall -Werror -fPIC -o $@ -c $<
 	echo ctags --append -e $<
 
-obj/%.o: %.c
+obj/%.o: %.c | obj
 	gcc -Wall -Werror -fPIC -o $@ -c $<
 	echo ctags --append -e $<
 
@@ -23,7 +23,7 @@ run: bin/brbcat
 	$< --debug < texto.ascii | tee --append texto.debug
 	echo "--- >8 ---"
 
-bin/%: obj/brbcat.o lib/libkr.so
+bin/%: obj/brbcat.o lib/libkr.so | bin
 	gcc -Wall -Werror -fPIC -L$$(pwd)/lib -Wl,-rpath=$$(pwd)/lib -o $@ $< -lkr
 
 clean: bin lib obj out
@@ -32,4 +32,3 @@ clean: bin lib obj out
 
 bin lib obj out:
 	mkdir -p $@
-
