@@ -8,12 +8,19 @@
 
 #include "brb.h"
 
-int incorporar(char buffer[], char elemento[], int debug);
+int incorporar(char **buffer, size_t *capacity, size_t *bp, const char *elemento, int debug);
 
 char *brb(char c[], int debug) {
-  int  bp      = 0;
-  int  t       = strlen(c);
-  char *buffer = (char*) malloc(sizeof(char) * 10240);
+  size_t bp       = 0;
+  size_t t        = strlen(c);
+  size_t capacity = (t * 12) + 1;
+  char *buffer    = (char*) malloc(sizeof(char) * capacity);
+
+  if (!buffer) {
+    return NULL;
+  }
+
+  buffer[0] = '\0';
 
   for (int n = 0; n < t; ++n) {
     int encontrado = -1;
@@ -44,7 +51,7 @@ char *brb(char c[], int debug) {
           }
 
           if (encontrado >= 0) {
-	    bp += incorporar(buffer, elementos[encontrado], debug);
+	    incorporar(&buffer, &capacity, &bp, elementos[encontrado], debug);
           }
 
 	  break;
@@ -52,32 +59,41 @@ char *brb(char c[], int debug) {
       }
 
       if (encontrado == -1) {
-	if (strlen(elementos[e]) == 1) {
-	  bp += incorporar(buffer, elementos[e], debug);
-	} else {
-	  buffer[bp++] = c[n];
-	}
+	buffer[bp++] = c[n];
+	buffer[bp] = '\0';
       }
     } else {
       buffer[bp++] = c[n];
+      buffer[bp] = '\0';
     }
   }
 
   return buffer;
 }
 
-int incorporar(char buffer[], char elemento[], int debug) {
-  char mascara[20] = "";
-  char *retorno    = (char*) malloc(sizeof(char) * (sizeof(mascara) + strlen(elemento)));
+int incorporar(char **buffer, size_t *capacity, size_t *bp, const char *elemento, int debug) {
+  const char *mascara = debug == 1 ? "[%s]" : "\033[0;32m%s\033[0m";
+  int needed = snprintf(NULL, 0, mascara, elemento);
 
-  if (debug == 1) {
-    strcat(mascara, "[%s]");
-  } else {
-    strcat(mascara, "\\033[0;32m%s\\033[0m");
+  if (needed < 0) {
+    return 0;
   }
 
-  sprintf(retorno, mascara, elemento);
-  strcat(buffer, retorno);
+  if ((*bp + (size_t) needed + 1) > *capacity) {
+    size_t new_capacity = (*capacity) * 2;
+    if (new_capacity < (*bp + (size_t) needed + 1)) {
+      new_capacity = *bp + (size_t) needed + 1;
+    }
+    char *new_buffer = (char *) realloc(*buffer, new_capacity);
+    if (!new_buffer) {
+      return 0;
+    }
+    *buffer = new_buffer;
+    *capacity = new_capacity;
+  }
 
-  return strlen(retorno);
+  snprintf(*buffer + *bp, *capacity - *bp, mascara, elemento);
+  *bp += (size_t) needed;
+
+  return needed;
 }
